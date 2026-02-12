@@ -97,3 +97,33 @@ SELECT * FROM Products ORDER BY Category ASC, Price ASC, Stock DESC;
 --- LIKE ---
 
 SELECT * FROM Products WHERE ProductName LIKE 'S%';
+
+--- GROUP BY ---
+
+SELECT Category, COUNT(*) AS  TotalProducts FROM Products GROUP BY Category;
+
+SELECT BranchID, SUM(Quantity) as TotalQuantity FROM Sales GROUP BY BranchID;
+
+--- JOINS ---
+
+SELECT p.ProductName, b.BranchName, s.Quantity, s.SaleDate 
+FROM  Sales s INNER JOIN Products p ON s.ProductID = p.ProductID
+INNER JOIN Branches b ON s.BranchID = b.BranchID;
+
+SELECT b.BranchName, COUNT(s.SaleID) AS TotalSales
+FROM Branches b INNER JOIN Sales s
+ON b.BranchID = s.BranchID GROUP BY b.BranchName;
+
+SELECT b.BranchName, COUNT(s.SaleID) AS TotalSales
+FROM Branches b LEFT JOIN Sales s
+ON b.BranchID = s.BranchID GROUP BY b.BranchName;
+
+SELECT p.ProductName, p.Category, SUM(s.Quantity) AS TotalQuantity
+FROM Products p INNER JOIN Sales s
+ON p.ProductID = s.ProductID GROUP BY p.ProductName, p.Category;
+
+SELECT b.BranchName, p.ProductName, SUM(s.Quantity) AS TotalQuantity
+FROM Sales s INNER JOIN Branches b ON s.BranchID = b.BranchID
+INNER JOIN Products p ON p.ProductID = s.ProductID
+GROUP BY b.BranchName, p.ProductName;
+
