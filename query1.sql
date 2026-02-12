@@ -127,3 +127,24 @@ FROM Sales s INNER JOIN Branches b ON s.BranchID = b.BranchID
 INNER JOIN Products p ON p.ProductID = s.ProductID
 GROUP BY b.BranchName, p.ProductName;
 
+--- VIEWS ---
+GO
+
+CREATE VIEW ElectronicProducts AS
+SELECT  ProductID, ProductName, Price FROM Products
+WHERE Category = 'Electronics';
+
+GO
+CREATE VIEW BranchSalesSummaryView AS
+SELECT b.BranchName, SUM(s.SaleID) AS TotalSalesCount, SUM(s.Quantity) AS TotalQuantityCount
+FROM Branches b INNER JOIN Sales s
+ON b.BranchID = s.BranchID GROUP BY b.BranchName;
+GO
+
+GO
+CREATE OR ALTER VIEW ProductBranchSalesView AS
+SELECT b.BranchName, p.ProductName, p.Category, SUM(s.Quantity) AS TotalQuantity
+FROM Sales s INNER JOIN Branches b ON s.BranchID = b.BranchID
+INNER JOIN Products p ON s.ProductID = p.ProductID
+GROUP BY b.BranchName, p.ProductName, p.Category;
+GO
