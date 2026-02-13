@@ -130,12 +130,12 @@ GROUP BY b.BranchName, p.ProductName;
 --- VIEWS ---
 GO
 
-CREATE VIEW ElectronicProducts AS
+CREATE OR ALTER VIEW ElectronicProducts AS
 SELECT  ProductID, ProductName, Price FROM Products
 WHERE Category = 'Electronics';
 
 GO
-CREATE VIEW BranchSalesSummaryView AS
+CREATE OR ALTER VIEW BranchSalesSummaryView AS
 SELECT b.BranchName, SUM(s.SaleID) AS TotalSalesCount, SUM(s.Quantity) AS TotalQuantityCount
 FROM Branches b INNER JOIN Sales s
 ON b.BranchID = s.BranchID GROUP BY b.BranchName;
@@ -148,3 +148,111 @@ FROM Sales s INNER JOIN Branches b ON s.BranchID = b.BranchID
 INNER JOIN Products p ON s.ProductID = p.ProductID
 GROUP BY b.BranchName, p.ProductName, p.Category;
 GO
+
+--- STORED PROCEDURE ---
+
+USE RetailStoreDB;
+GO
+CREATE OR ALTER PROCEDURE dbo.GetAllPRoducts 
+AS
+BEGIN
+    SELECT * FROM Products
+END;
+GO
+
+EXEC dbo.GetAllPRoducts;
+
+
+
+GO
+CREATE OR ALTER PROCEDURE dbo.GetProductsByCategory
+    @Category VARCHAR(50)
+AS
+BEGIN
+    SELECT ProductID, ProductName, Price, Stock
+    FROM Products
+    WHERE Category = @Category
+END;
+GO
+
+EXEC dbo.GetProductsByCategory 'Electronics';
+
+
+
+GO
+CREATE OR ALTER PROCEDURE dbo.GetProductsByPriceRange
+    @MinPrice DECIMAL(10, 2),
+    @MaxPrice DECIMAL(10, 2)
+AS
+BEGIN
+    SELECT ProductID, ProductName, Category, Price
+    FROM Products
+    WHERE Price BETWEEN @MinPrice AND @MaxPrice
+END;
+GO
+
+EXEC dbo.GetProductsByPriceRange 10000, 20000;
+
+
+GO
+CREATE OR ALTER PROCEDURE dbo.IncreaseProductPrice 
+    @ProductID INT,
+    @IncreasePercentage DECIMAL(5,2)
+AS
+BEGIN
+    UPDATE Products
+    SET Price = Price + (Price * @IncreasePercentage/100)
+    WHERE ProductID = @ProductID
+END;
+GO
+
+EXEC dbo.IncreaseProductPrice 101, 10;
+
+
+
+GO
+CREATE OR ALTER PROCEDURE dbo.AddNewProduct
+    @ProductID INT,
+    @ProductName VARCHAR(100),
+    @Category VARCHAR(50),
+    @Price DECIMAL(10, 2),
+    @Stock INT
+AS
+BEGIN
+    INSERT INTO Products VALUES(
+        @ProductID, @ProductName, @Category, @Price, @Stock
+    )
+END;
+GO
+
+EXEC dbo.AddNewProduct
+    106,
+    'Gaming Mouse',
+    'Electronics',
+    18000,
+    60;
+
+SELECT * FROM Products WHERE ProductID = 106;
+
+
+
+GO
+CREATE OR ALTER PROCEDURE dbo.GetTotalSalesQuantityByBranch
+    @BranchID INT,
+    @TotalQuantity INT OUTPUT
+AS
+BEGIN
+    SELECT @TotalQuantity = ISNULL(SUM(Quantity), 0)
+    FROM Sales
+    WHERE BranchID = @BranchID
+END;
+GO
+
+
+DECLARE @Total INT;
+
+EXEC dbo.GetTotalSalesQuantityByBranch 
+    @BranchID = 1,
+    @TotalQuantity = @Total OUTPUT;
+
+SELECT @Total AS TotalSold;
